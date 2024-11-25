@@ -115,9 +115,9 @@ def update(frame, mlp, ax_hidden, ax_input, ax_gradient, X, y):
     # Add hyperplane
     xx, yy = np.meshgrid(np.linspace(-1, 1, 20), np.linspace(-1, 1, 20))
     zz = -(mlp.W2[0] * xx + mlp.W2[1] * yy + mlp.b2) / mlp.W2[2]
-    ax_hidden.plot_surface(xx, yy, zz, alpha=0.2, cmap='autumn')
+    surf = ax_hidden.plot_surface(xx, yy, zz, alpha=0.2, cmap='autumn')
     
-    ax_hidden.view_init(elev=20, azim=-45)
+    ax_hidden.view_init(elev=20, azim=-70)
     ax_hidden.set_box_aspect([1,1,1])
 
     # Input Space Plot
@@ -126,25 +126,19 @@ def update(frame, mlp, ax_hidden, ax_input, ax_gradient, X, y):
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200),
                         np.linspace(y_min, y_max, 200))
     
-    # Calculate the distance from center for each point
-    distances = xx**2 + yy**2
-    
     # Get network predictions
     Z = mlp.forward(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
+    Z_binary = np.where(Z > 0, 1, -1)
+
+    # Define vibrant red and blue colors
     colors = [(0.0, (0.0, 0.2, 1.0)),    # Vibrant blue
-            (1.0, (1.0, 0.0, 0.0))]     # Vibrant red
+             (1.0, (1.0, 0.0, 0.0))]     # Vibrant red
     custom_cmap = LinearSegmentedColormap.from_list('custom', colors)
     
-    # Create the decision boundary visualization
-    # Use distances to create circular pattern
-    # Points with distance <= 1 should be blue, others red
-    boundary = distances.copy()
-    boundary[distances <= 1] = -1  # Blue for inside circle
-    boundary[distances > 1] = 1    # Red for outside circle
     
-    # Plot decision boundary
-    ax_input.pcolormesh(xx, yy, boundary, cmap=custom_cmap, alpha=0.5)
+    # Plot decision boundary with vibrant colors and adjusted alpha
+    ax_input.pcolormesh(xx, yy, Z_binary, cmap=custom_cmap, alpha=0.5)
     
     # Plot scatter points
     ax_input.scatter(X[:, 0], X[:, 1], c=y.ravel(), cmap='bwr', edgecolor='black', linewidth=0.5)
